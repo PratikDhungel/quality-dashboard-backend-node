@@ -6,7 +6,7 @@ exports.login = (req, res, next) => {
     // res.status(200).json({status: true, message: 'Login as a User'});
     sqlConnection.query('SELECT * FROM users', (err, results, fields) =>{
         if(!err){
-            res.status(200).json(results)
+            res.status(200).json(results);
         }
     });
 }
