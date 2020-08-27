@@ -22,7 +22,7 @@ exports.addUser = (req, res, next) => {
 exports.getAllUsers = (req, res, next) => {
   const getResults = new Promise((resolve, reject) => {
     let query =
-      'SELECT id, email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted FROM users';
+      'SELECT id, email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted FROM users WHERE is_deleted = 0';
     sqlConnection.query(query, (err, results, fields) => {
       if (!err) {
         resolve(results);
@@ -38,7 +38,8 @@ exports.getAllUsers = (req, res, next) => {
       console.log(queryResults);
       res.status(200).json(queryResults);
     } catch (err) {
-      console.log(err);
+      console.log(err.message);
+      res.status(500).json({ message: err.message });
     }
   }
 
