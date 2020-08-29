@@ -48,10 +48,8 @@ exports.addUser = (req, res, next) => {
           .json({ message: `User with this email is already registered.` });
       } else {
         try {
-          const queryResults = await addUserToDB();
-          res
-            .status(200)
-            .json({ status: 'New user created', message: queryResults });
+          await addUserToDB();
+          res.status(200).json({ status: 'New user created' });
         } catch (error) {
           res.status(500).json({ message: error.message });
         }
