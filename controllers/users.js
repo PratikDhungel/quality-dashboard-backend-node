@@ -10,7 +10,7 @@ exports.login = (req, res, next) => {
 // @Desc:       Add a new User
 // @Route:      POST /api/v1/user/addUser
 // @Access:     Private
-exports.addUser = (req, res, next) => {
+exports.addUser = async (req, res, next) => {
   // Check if the Email is already registered
   function checkExistingUser() {
     return new Promise((resolve, reject) => {
@@ -39,36 +39,32 @@ exports.addUser = (req, res, next) => {
     });
   }
 
-  async function checkAndAddNewUser() {
-    try {
-      const queryResults = await checkExistingUser();
-      if (queryResults.length !== 0) {
-        next(
-          new ErrorResponse(
-            `User with the email ${req.body.email} is already registered`,
-            400
-          )
-        );
-      } else {
-        try {
-          await addUserToDB();
-          res.status(200).json({ status: 'New user created' });
-        } catch (err) {
-          next(err);
-        }
+  try {
+    const queryResults = await checkExistingUser();
+    if (queryResults.length !== 0) {
+      next(
+        new ErrorResponse(
+          `User with the email ${req.body.email} is already registered`,
+          400
+        )
+      );
+    } else {
+      try {
+        await addUserToDB();
+        res.status(200).json({ status: 'New user created' });
+      } catch (err) {
+        next(err);
       }
-    } catch (err) {
-      next(err);
     }
+  } catch (err) {
+    next(err);
   }
-
-  checkAndAddNewUser();
 };
 
 // @Desc:       Get list of all Users
 // @Route:      POST /api/v1/user/getUsers
 // @Access:     Public
-exports.getAllUsers = (req, res, next) => {
+exports.getAllUsers = async (req, res, next) => {
   function getResults() {
     return new Promise((resolve, reject) => {
       let query =
@@ -83,16 +79,12 @@ exports.getAllUsers = (req, res, next) => {
     });
   }
 
-  async function returnListOfUser() {
-    try {
-      const queryResults = await getResults();
-      res.status(200).json(queryResults);
-    } catch (err) {
-      next(err);
-    }
+  try {
+    const queryResults = await getResults();
+    res.status(200).json(queryResults);
+  } catch (err) {
+    next(err);
   }
-
-  returnListOfUser();
 };
 
 // @Desc:       Login as a User
