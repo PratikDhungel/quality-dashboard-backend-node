@@ -1,10 +1,13 @@
-const sqlConnection = require('../config/db');
 const ErrorResponse = require('../utils/errorResponse');
 const {
   checkExistingUserByEmail,
   addNewUserToDB,
   getAllUsersInDB,
 } = require('../domains/users');
+const {
+  validateUserEmail,
+  validateUserPassword,
+} = require('../utils/validator');
 
 // @Desc:       Login as a User
 // @Route:      POST /api/v1/user/login
@@ -17,10 +20,20 @@ exports.login = (req, res, next) => {
 // @Route:      POST /api/v1/user/addUser
 // @Access:     Private
 exports.addUser = async (req, res, next) => {
+  //   console.log(validateUserEmail(req.body.email));
+
+  //   console.log(isUserEmailValid);
+  //   if (!isUserEmailValid) {
+  // next(new ErrorResponse(`Invalid Email`, 400));
+  //   }
+
   try {
+    const isUserEmailValid = await validateUserEmail(req.body.email);
+    const isUserPasswordValid = await validateUserPassword(req.body.password);
+
     // Check if the Email is already registered and send 400 response if true
     const queryResults = await checkExistingUserByEmail(req.body.email);
-    if (queryResults.length !== 0) {
+    if (isUserEmailValid && isUserPasswordValid && queryResults.length !== 0) {
       next(
         new ErrorResponse(
           `User with the email ${req.body.email} is already registered`,
@@ -46,6 +59,7 @@ exports.addUser = async (req, res, next) => {
 // @Access:     Public
 exports.getAllUsers = async (req, res, next) => {
   try {
+    // Get the details of all users
     let queryResults = await getAllUsersInDB();
     queryResults.forEach((element) => {
       element.employmentStatus = 'gg';
