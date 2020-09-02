@@ -3,7 +3,7 @@ const {
   checkExistingUserByEmail,
   addNewUserToDB,
   getAllUsersInDB,
-} = require('../domains/users');
+} = require('../services/userServices');
 const {
   validateUserEmail,
   validateUserPassword,
@@ -20,13 +20,6 @@ exports.login = (req, res, next) => {
 // @Route:      POST /api/v1/user/addUser
 // @Access:     Private
 exports.addUser = async (req, res, next) => {
-  //   console.log(validateUserEmail(req.body.email));
-
-  //   console.log(isUserEmailValid);
-  //   if (!isUserEmailValid) {
-  // next(new ErrorResponse(`Invalid Email`, 400));
-  //   }
-
   try {
     const isUserEmailValid = await validateUserEmail(req.body.email);
     const isUserPasswordValid = await validateUserPassword(req.body.password);
@@ -40,15 +33,9 @@ exports.addUser = async (req, res, next) => {
           400
         )
       );
-    } else {
-      try {
-        // Add new User to DB
-        await addNewUserToDB(req);
-        res.status(200).json({ status: 'New user created' });
-      } catch (err) {
-        next(err);
-      }
     }
+    await addNewUserToDB(req);
+    res.status(200).json({ status: 'New user created' });
   } catch (err) {
     next(err);
   }
