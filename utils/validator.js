@@ -11,7 +11,6 @@ exports.validateUserEmail = (userEmail) => {
 };
 
 exports.validateUserPassword = (userPassword) => {
-  console.log(userPassword.length);
   return new Promise((resolve, reject) => {
     if (userPassword.length > 7) {
       resolve(true);

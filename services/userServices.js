@@ -1,4 +1,5 @@
 const sqlConnection = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 exports.checkExistingUserByEmail = (userEmail) => {
   return new Promise((resolve, reject) => {
@@ -15,9 +16,13 @@ exports.checkExistingUserByEmail = (userEmail) => {
 
 exports.addNewUserToDB = (req) => {
   // Encrypt user password
+  let userPassword = req.body.password;
+  const salt = bcrypt.genSaltSync(10);
+  var hashPassword = bcrypt.hashSync(userPassword, salt);
+
   return new Promise((resolve, reject) => {
-    let query = `INSERT INTO users (email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted)
-        VALUES ('${req.body.email}', '${req.body.first_name}', '${req.body.last_name}', '${req.body.phone_number}', '${req.body.street_name}', '${req.body.city}', '${req.body.district}', '${req.body.province}', ${req.body.is_admin}, ${req.body.is_verified}, '${req.body.verified_on}', '${req.body.account_status}', '${req.body.last_activity}', ${req.body.is_deleted});`;
+    let query = `INSERT INTO users (email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted, password)
+        VALUES ('${req.body.email}', '${req.body.first_name}', '${req.body.last_name}', '${req.body.phone_number}', '${req.body.street_name}', '${req.body.city}', '${req.body.district}', '${req.body.province}', ${req.body.is_admin}, ${req.body.is_verified}, '${req.body.verified_on}', '${req.body.account_status}', '${req.body.last_activity}', ${req.body.is_deleted}, '${hashPassword}');`;
     sqlConnection.query(query, (err, results, fields) => {
       if (!err) {
         resolve(results);
