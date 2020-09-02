@@ -1,7 +1,28 @@
 const sqlConnection = require('../config/db');
 const bcrypt = require('bcryptjs');
+const ErrorResponse = require('../utils/errorResponse');
+const salt = bcrypt.genSaltSync(10);
 
-exports.checkExistingUserByEmail = (userEmail) => {
+exports.validatePasswordForGivenEmail = (userEmail, userPassword) => {
+  return new Promise((resolve, reject) => {
+    let query = `SELECT id, password FROM users WHERE email = '${userEmail}';`;
+    sqlConnection.query(query, (err, results, fields) => {
+      let passwordFromQuery = results[0].password;
+      let userID = results[0].id;
+      if (bcrypt.compareSync(userPassword, passwordFromQuery)) {
+        resolve({ status: true, userID: userID });
+      } else {
+        reject(new ErrorResponse('Incorrect Password', 400));
+      }
+    });
+  });
+};
+
+exports.loginUser = (userEmail, userPassword) => {
+  return new Promise((resolve, reject) => {});
+};
+
+exports.returnUsersWithGivenEmail = (userEmail) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT email FROM users WHERE email = '${userEmail}';`;
     sqlConnection.query(query, (err, results, fields) => {
@@ -14,10 +35,9 @@ exports.checkExistingUserByEmail = (userEmail) => {
   });
 };
 
-exports.addNewUserToDB = (req) => {
+exports.addNewUser = (req) => {
   // Encrypt user password
   let userPassword = req.body.password;
-  const salt = bcrypt.genSaltSync(10);
   var hashPassword = bcrypt.hashSync(userPassword, salt);
 
   return new Promise((resolve, reject) => {
@@ -33,7 +53,7 @@ exports.addNewUserToDB = (req) => {
   });
 };
 
-exports.getAllUsersInDB = () => {
+exports.getListOfAllUsers = () => {
   return new Promise((resolve, reject) => {
     let query =
       'SELECT id, email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted FROM users';
@@ -43,6 +63,18 @@ exports.getAllUsersInDB = () => {
       } else {
         reject(err);
       }
+    });
+  });
+};
+
+exports.returnUserInfo = (userID) => {
+  return new Promise((resolve, reject) => {
+    let query = `SELECT id, email, first_name, last_name FROM users WHERE id = ${userID}`;
+    sqlConnection.query(query, (err, results, fields) => {
+      if (!err) {
+        resolve(results[0]);
+      }
+      reject(err);
     });
   });
 };
