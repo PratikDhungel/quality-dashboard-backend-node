@@ -12,7 +12,7 @@ exports.validatePasswordForGivenEmail = (userEmail, userPassword) => {
       if (bcrypt.compareSync(userPassword, passwordFromQuery)) {
         resolve({ status: true, userID: userID });
       } else {
-        reject(new ErrorResponse('Incorrect Password', 400));
+        reject(new ErrorResponse('Incorrect Password', 401));
       }
     });
   });
@@ -56,12 +56,14 @@ exports.addNewUser = (req) => {
 exports.getListOfAllUsers = () => {
   return new Promise((resolve, reject) => {
     let query =
-      'SELECT id, email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted FROM users';
+      'SELECT id, email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted FROM users WHERE is_deleted = 0';
     sqlConnection.query(query, (err, results, fields) => {
       if (!err) {
         resolve(results);
+        // return results;
       } else {
         reject(err);
+        // return err;
       }
     });
   });

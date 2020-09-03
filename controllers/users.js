@@ -17,35 +17,38 @@ const generateJsonWebToken = require('../utils/auth');
 // @Route:      POST /api/v1/user/login
 // @Access:     Public
 exports.login = async (req, res, next) => {
-  try {
-    const isUserEmailValid = await validateEmailFormat(req.body.email);
-    const listOfUsersWithEmail = await returnUsersWithGivenEmail(
-      req.body.email
-    );
-
-    let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
-
-    if (isUserEmailValid && !isEmailExisting) {
-      next(
-        new ErrorResponse(
-          `User with the email ${req.body.email} does not exist`,
-          400
-        )
+  if (!req.body.email || !req.body.password) {
+    next(new ErrorResponse('Email and Password required!', 400));
+  } else {
+    try {
+      const isUserEmailValid = await validateEmailFormat(req.body.email);
+      const listOfUsersWithEmail = await returnUsersWithGivenEmail(
+        req.body.email
       );
-    } else {
+
+      let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
+
+      if (isUserEmailValid && !isEmailExisting) {
+        next(
+          new ErrorResponse(
+            `User with the email ${req.body.email} does not exist`,
+            401
+          )
+        );
+      }
       const passwordMatchResult = await validatePasswordForGivenEmail(
         req.body.email,
         req.body.password
       );
-      if (passwordMatchResult.status) {
+      if (passwordMatchResult.status === true) {
         let singleUserInfo = await returnUserInfo(passwordMatchResult.userID);
         let jwtToken = generateJsonWebToken(passwordMatchResult.userID);
         singleUserInfo.token = jwtToken;
         res.status(200).json(singleUserInfo);
       }
+    } catch (err) {
+      next(err);
     }
-  } catch (err) {
-    next(err);
   }
 };
 
@@ -84,6 +87,7 @@ exports.addUser = async (req, res, next) => {
 // @Route:      POST /api/v1/user/getUsers
 // @Access:     Public
 exports.getAllUsers = async (req, res, next) => {
+  // exports.getAllUsers = (req, res, next) => {
   try {
     // Get the details of all users
     let listOfUsers = await getListOfAllUsers();
