@@ -5,7 +5,7 @@ const {
   returnUsersWithGivenEmail,
   addNewUser,
   getListOfAllUsers,
-  returnUserInfo,
+  returnSingleUserInfo,
 } = require('../services/userServices');
 const {
   validateEmailFormat,
@@ -53,7 +53,9 @@ exports.login = async (req, res, next) => {
 
     if (passwordMatchResult.status === true) {
       console.log(`Logging in the user`.blue);
-      let singleUserInfo = await returnUserInfo(passwordMatchResult.userID);
+      let singleUserInfo = await returnSingleUserInfo(
+        passwordMatchResult.userID
+      );
       let jwtToken = generateJsonWebToken(passwordMatchResult.userID);
       let cookieOptions = generateCookieOptions();
 
