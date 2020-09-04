@@ -6,7 +6,8 @@ exports.validateEmailFormat = (userEmail) => {
   if (emailRegEx.test(userEmail)) {
     return true;
   }
-  return new ErrorResponse('Invalid User Email', 400);
+  console.log(`Invalid email format`.blue);
+  return false;
 };
 
 exports.validatePasswordLength = (userPassword) => {

@@ -15,8 +15,6 @@ const {
   generateJsonWebToken,
   generateCookieOptions,
 } = require('../utils/auth');
-const { token } = require('morgan');
-const { options } = require('../routes/users');
 
 // @Desc:       Login as a User
 // @Route:      POST /api/v1/user/login
@@ -26,28 +24,33 @@ exports.login = async (req, res, next) => {
   if (!req.body.email || !req.body.password) {
     return res.status(400).json({ msg: 'Email and Password are required' });
   }
+
+  // Return error if email is not valid
+  if (!validateEmailFormat(req.body.email)) {
+    return next(new ErrorResponse('Invalid User Email', 400));
+  }
+
   try {
-    // Check if the email format is valid and a user with the given email exists
-    const isUserEmailValid = validateEmailFormat(req.body.email);
+    // Check if user with the email exists
     const listOfUsersWithEmail = await returnUsersWithGivenEmail(
       req.body.email
     );
-
     let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
 
-    if (isUserEmailValid && !isEmailExisting) {
+    if (!isEmailExisting) {
       return next(
         new ErrorResponse(
           `User with the email ${req.body.email} does not exist`,
           401
         )
       );
-      //   return 1;
     }
+
     const passwordMatchResult = await validatePasswordForGivenEmail(
       req.body.email,
       req.body.password
     );
+
     if (passwordMatchResult.status === true) {
       console.log(`Logging in the user`.blue);
       let singleUserInfo = await returnUserInfo(passwordMatchResult.userID);
