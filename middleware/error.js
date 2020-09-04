@@ -12,12 +12,13 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Handle SQL Parse error
-  if (err.code === 'ER_PARSE_ERROR') {
+  if (newErrorObj.code === 'ER_PARSE_ERROR') {
     const message = `Error while parsing SQL Syntax`;
     newErrorObj = new ErrorResponse(message, 500);
   }
 
   // Return response after with error message and status
+  console.log(`Returning response from error handler`.blue);
   res.status(newErrorObj.statusCode || 500).json({
     success: false,
     error: newErrorObj.message || 'Internal Server Error',

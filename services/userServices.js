@@ -4,6 +4,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const salt = bcrypt.genSaltSync(10);
 
 exports.validatePasswordForGivenEmail = (userEmail, userPassword) => {
+  console.log(`Inside validatePasswordForGivenEmail`.blue);
   return new Promise((resolve, reject) => {
     let query = `SELECT id, password FROM users WHERE email = '${userEmail}';`;
     sqlConnection.query(query, (err, results, fields) => {
@@ -23,6 +24,7 @@ exports.loginUser = (userEmail, userPassword) => {
 };
 
 exports.returnUsersWithGivenEmail = (userEmail) => {
+  console.log(`Inside returnUsersWithGivenEmail`);
   return new Promise((resolve, reject) => {
     let query = `SELECT email FROM users WHERE email = '${userEmail}';`;
     sqlConnection.query(query, (err, results, fields) => {

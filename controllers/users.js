@@ -11,44 +11,57 @@ const {
   validateEmailFormat,
   validatePasswordLength,
 } = require('../utils/validator');
-const generateJsonWebToken = require('../utils/auth');
+const {
+  generateJsonWebToken,
+  generateCookieOptions,
+} = require('../utils/auth');
+const { token } = require('morgan');
+const { options } = require('../routes/users');
 
 // @Desc:       Login as a User
 // @Route:      POST /api/v1/user/login
 // @Access:     Public
 exports.login = async (req, res, next) => {
+  // Check if Email and Password are provided in the request body
   if (!req.body.email || !req.body.password) {
-    next(new ErrorResponse('Email and Password required!', 400));
-  } else {
-    try {
-      const isUserEmailValid = await validateEmailFormat(req.body.email);
-      const listOfUsersWithEmail = await returnUsersWithGivenEmail(
-        req.body.email
-      );
+    return res.status(400).json({ msg: 'Email and Password are required' });
+  }
+  try {
+    // Check if the email format is valid and a user with the given email exists
+    const isUserEmailValid = validateEmailFormat(req.body.email);
+    const listOfUsersWithEmail = await returnUsersWithGivenEmail(
+      req.body.email
+    );
 
-      let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
+    let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
 
-      if (isUserEmailValid && !isEmailExisting) {
-        next(
-          new ErrorResponse(
-            `User with the email ${req.body.email} does not exist`,
-            401
-          )
-        );
-      }
-      const passwordMatchResult = await validatePasswordForGivenEmail(
-        req.body.email,
-        req.body.password
+    if (isUserEmailValid && !isEmailExisting) {
+      return next(
+        new ErrorResponse(
+          `User with the email ${req.body.email} does not exist`,
+          401
+        )
       );
-      if (passwordMatchResult.status === true) {
-        let singleUserInfo = await returnUserInfo(passwordMatchResult.userID);
-        let jwtToken = generateJsonWebToken(passwordMatchResult.userID);
-        singleUserInfo.token = jwtToken;
-        res.status(200).json(singleUserInfo);
-      }
-    } catch (err) {
-      next(err);
+      //   return 1;
     }
+    const passwordMatchResult = await validatePasswordForGivenEmail(
+      req.body.email,
+      req.body.password
+    );
+    if (passwordMatchResult.status === true) {
+      console.log(`Logging in the user`.blue);
+      let singleUserInfo = await returnUserInfo(passwordMatchResult.userID);
+      let jwtToken = generateJsonWebToken(passwordMatchResult.userID);
+      let cookieOptions = generateCookieOptions();
+
+      singleUserInfo.token = jwtToken;
+      return res
+        .status(200)
+        .cookie('token', jwtToken, cookieOptions)
+        .json(singleUserInfo);
+    }
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -57,8 +70,8 @@ exports.login = async (req, res, next) => {
 // @Access:     Private
 exports.addUser = async (req, res, next) => {
   try {
-    const isUserEmailValid = await validateEmailFormat(req.body.email);
-    const isUserPasswordValid = await validatePasswordLength(req.body.password);
+    const isUserEmailValid = validateEmailFormat(req.body.email);
+    const isUserPasswordValid = validatePasswordLength(req.body.password);
 
     // Check if the Email is already registered and send 400 response if true
     const listOfUsersWithEmail = await returnUsersWithGivenEmail(
@@ -76,7 +89,9 @@ exports.addUser = async (req, res, next) => {
       );
     } else {
       await addNewUser(req);
-      res.status(200).json({ success: true, message: 'New user created' });
+      return res
+        .status(200)
+        .json({ success: true, message: 'New user created' });
     }
   } catch (err) {
     next(err);
@@ -94,7 +109,7 @@ exports.getAllUsers = async (req, res, next) => {
     listOfUsers.forEach((element) => {
       element.employmentStatus = 'On a break';
     });
-    res.status(200).json(listOfUsers);
+    return res.status(200).json(listOfUsers);
   } catch (err) {
     next(err);
   }
@@ -104,7 +119,7 @@ exports.getAllUsers = async (req, res, next) => {
 // @Route:      POST /api/v1/user/getUsers/:id
 // @Access:     Public
 exports.getSingleUser = (req, res, next) => {
-  res
+  return res
     .status(200)
     .json({ success: true, message: `Display User ${req.params.id}` });
 };
