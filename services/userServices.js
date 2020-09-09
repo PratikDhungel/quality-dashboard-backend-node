@@ -2,6 +2,7 @@ const sqlConnection = require('../config/db');
 const bcrypt = require('bcryptjs');
 const ErrorResponse = require('../utils/errorResponse');
 const salt = bcrypt.genSaltSync(10);
+const { getFormattedUTCTime } = require('../utils/dateTime');
 
 exports.validatePasswordForGivenEmail = (userEmail, userPassword) => {
   return new Promise((resolve, reject) => {
@@ -42,8 +43,9 @@ exports.addNewUser = (req) => {
   var hashPassword = bcrypt.hashSync(userPassword, salt);
 
   return new Promise((resolve, reject) => {
-    let query = `INSERT INTO users (email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted, password)
-        VALUES ('${req.body.email}', '${req.body.first_name}', '${req.body.last_name}', '${req.body.phone_number}', '${req.body.street_name}', '${req.body.city}', '${req.body.district}', '${req.body.province}', ${req.body.is_admin}, ${req.body.is_verified}, '${req.body.verified_on}', '${req.body.account_status}', '${req.body.last_activity}', ${req.body.is_deleted}, '${hashPassword}');`;
+    let currentTimeStamp = getFormattedUTCTime();
+    let query = `INSERT INTO users (email, first_name, last_name, password, primary_phone_number, secondary_phone_number, street_address, city, state, zip_code, date_of_birth, gender, user_role, status, registered_on, last_activity, is_deleted)
+        VALUES ('${req.body.email}', '${req.body.first_name}', '${req.body.last_name}', '${hashPassword}', '${req.body.primary_phone_number}', '${req.body.secondary_phone_number}', '${req.body.street_address}', '${req.body.city}', '${req.body.state}', ${req.body.zip_code}, '${req.body.date_of_birth}', '${req.body.gender}', '${req.body.user_role}', 'registered', '${currentTimeStamp}', '${currentTimeStamp}', false);`;
     sqlConnection.query(query, (err, results, fields) => {
       if (!err) {
         resolve(results);
