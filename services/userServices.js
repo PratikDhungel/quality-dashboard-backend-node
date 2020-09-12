@@ -59,7 +59,7 @@ exports.addNewUser = (req) => {
 exports.getListOfAllUsers = () => {
   return new Promise((resolve, reject) => {
     let query =
-      'SELECT id, email, first_name, last_name, phone_number, street_name, city, district, province, is_admin, is_verified, verified_on, account_status, last_activity, is_deleted FROM users WHERE is_deleted = 0';
+      'SELECT id, email, first_name, last_name, primary_phone_number, secondary_phone_number, street_address, city, state, zip_code, date_of_birth, gender, user_role, status FROM users WHERE is_deleted = 0';
     sqlConnection.query(query, (err, results, fields) => {
       if (!err) {
         resolve(results);
@@ -74,7 +74,7 @@ exports.getListOfAllUsers = () => {
 
 exports.returnSingleUserInfo = (userID) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT id, email, first_name, last_name FROM users WHERE id = ${userID}`;
+    let query = `SELECT id, email, first_name, last_name, user_role FROM users WHERE id = ${userID}`;
     sqlConnection.query(query, (err, results, fields) => {
       if (!err) {
         resolve(results[0]);

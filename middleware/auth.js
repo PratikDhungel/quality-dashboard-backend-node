@@ -25,8 +25,23 @@ exports.protect = async (req, res, next) => {
 
     const results = await returnSingleUserInfo(decodedToken.userID);
     req.userID = results.id;
+    req.role = results.user_role;
     next();
   } catch (err) {
     return next(new ErrorResponse('Unauthorized to access this route', '401'));
   }
+};
+
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.role)) {
+      return next(
+        new ErrorResponse(
+          `User role '${req.role}' unauthorized to access this route`,
+          '403'
+        )
+      );
+    }
+    next();
+  };
 };
