@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+const cors = require('cors');
 const errorHandler = require('./middleware/error');
 
 // Route files
@@ -13,6 +14,9 @@ dotenv.config({ path: './config/config.env' });
 
 // Initialize App variable
 const app = express();
+
+// Use CORS
+app.use(cors({ origin: 'http://localhost:5500' }));
 
 // Body Parses
 app.use(express.json());

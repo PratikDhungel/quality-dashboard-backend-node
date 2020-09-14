@@ -111,9 +111,6 @@ exports.getAllUsers = async (req, res, next) => {
   try {
     // Get the details of all users
     let listOfUsers = await getListOfAllUsers();
-    listOfUsers.forEach((element) => {
-      element.employmentStatus = 'On a break';
-    });
     return res.status(200).json(listOfUsers);
   } catch (err) {
     next(err);
