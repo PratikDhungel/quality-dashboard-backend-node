@@ -6,10 +6,7 @@ const { returnSingleUserInfo } = require('../services/userServices');
 exports.protect = async (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
   //   else if (req.cookies.token) {
@@ -17,6 +14,7 @@ exports.protect = async (req, res, next) => {
   //   }
 
   if (!token) {
+    console.log('No Token'.red);
     return next(new ErrorResponse('Unauthorized to access this route', '401'));
   }
 
@@ -28,6 +26,7 @@ exports.protect = async (req, res, next) => {
     req.role = results.user_role;
     next();
   } catch (err) {
+    console.log('Error while decoding token'.red);
     return next(new ErrorResponse('Unauthorized to access this route', '401'));
   }
 };
@@ -35,12 +34,7 @@ exports.protect = async (req, res, next) => {
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.role)) {
-      return next(
-        new ErrorResponse(
-          `User role '${req.role}' unauthorized to access this route`,
-          '403'
-        )
-      );
+      return next(new ErrorResponse(`User role '${req.role}' unauthorized to access this route`, '403'));
     }
     next();
   };

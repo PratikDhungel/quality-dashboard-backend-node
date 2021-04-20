@@ -7,7 +7,7 @@ const errorHandler = require('./middleware/error');
 
 // Route files
 const users = require('./routes/users');
-const { json } = require('express');
+const rentals = require('./routes/rentals');
 
 // Load environment variables
 dotenv.config({ path: './config/config.env' });
@@ -16,7 +16,14 @@ dotenv.config({ path: './config/config.env' });
 const app = express();
 
 // Use CORS
-app.use(cors({ origin: 'http://localhost:5500' }));
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorizations'],
+  credentials: true,
+};
+// app.use(cors({ origin: 'http://localhost:5500' }));
+app.use(cors(corsOptions));
 
 // Body Parses
 app.use(express.json());
@@ -27,6 +34,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Mount routers
+app.use('/api/v1/rentals', rentals);
 app.use('/api/v1/user', users);
 
 // Error Handler Middleware
@@ -34,8 +42,4 @@ app.use(errorHandler);
 
 // Run Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(
-    `Server running in ${process.env.NODE_ENV} env on port ${PORT}`.yellow.bold
-  )
-);
+app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV} env on port ${PORT}`.yellow.bold));

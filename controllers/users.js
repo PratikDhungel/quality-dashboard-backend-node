@@ -7,14 +7,8 @@ const {
   getListOfAllUsers,
   returnSingleUserInfo,
 } = require('../services/userServices');
-const {
-  validateEmailFormat,
-  validatePasswordLength,
-} = require('../utils/validator');
-const {
-  generateJsonWebToken,
-  generateCookieOptions,
-} = require('../utils/auth');
+const { validateEmailFormat, validatePasswordLength } = require('../utils/validator');
+const { generateJsonWebToken, generateCookieOptions } = require('../utils/auth');
 
 // @Desc:       Login as a User
 // @Route:      POST /api/v1/user/login
@@ -22,7 +16,8 @@ const {
 exports.login = async (req, res, next) => {
   // Check if Email and Password are provided in the request body
   if (!req.body.email || !req.body.password) {
-    return res.status(400).json({ msg: 'Email and Password are required' });
+    // return res.status(400).json({ msg: 'Email and Password are required' });
+    return next(new ErrorResponse('Email and Password are required', 400));
   }
 
   // Return error if email is not valid
@@ -32,38 +27,23 @@ exports.login = async (req, res, next) => {
 
   try {
     // Check if user with the email exists
-    const listOfUsersWithEmail = await returnUsersWithGivenEmail(
-      req.body.email
-    );
+    const listOfUsersWithEmail = await returnUsersWithGivenEmail(req.body.email);
     let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
 
     if (!isEmailExisting) {
-      return next(
-        new ErrorResponse(
-          `User with the email ${req.body.email} does not exist`,
-          401
-        )
-      );
+      return next(new ErrorResponse(`User with the email ${req.body.email} does not exist`, 401));
     }
 
-    const passwordMatchResult = await validatePasswordForGivenEmail(
-      req.body.email,
-      req.body.password
-    );
+    const passwordMatchResult = await validatePasswordForGivenEmail(req.body.email, req.body.password);
 
     if (passwordMatchResult.status === true) {
       console.log(`Logging in the user`.blue);
-      let singleUserInfo = await returnSingleUserInfo(
-        passwordMatchResult.userID
-      );
+      let singleUserInfo = await returnSingleUserInfo(passwordMatchResult.userID);
       let jwtToken = generateJsonWebToken(passwordMatchResult.userID);
       let cookieOptions = generateCookieOptions();
 
       singleUserInfo.token = jwtToken;
-      return res
-        .status(200)
-        .cookie('token', jwtToken, cookieOptions)
-        .json(singleUserInfo);
+      return res.status(200).cookie('token', jwtToken, cookieOptions).json(singleUserInfo);
     }
   } catch (err) {
     next(err);
@@ -79,24 +59,15 @@ exports.addUser = async (req, res, next) => {
     const isUserPasswordValid = validatePasswordLength(req.body.password);
 
     // Check if the Email is already registered and send 400 response if true
-    const listOfUsersWithEmail = await returnUsersWithGivenEmail(
-      req.body.email
-    );
+    const listOfUsersWithEmail = await returnUsersWithGivenEmail(req.body.email);
 
     let isEmailExisting = listOfUsersWithEmail.length > 0 ? true : false;
 
     if (isUserEmailValid && isUserPasswordValid && isEmailExisting) {
-      next(
-        new ErrorResponse(
-          `User with the email ${req.body.email} is already registered`,
-          400
-        )
-      );
+      next(new ErrorResponse(`User with the email ${req.body.email} is already registered`, 400));
     } else {
       await addNewUser(req);
-      return res
-        .status(200)
-        .json({ success: true, message: 'New user created' });
+      return res.status(200).json({ success: true, message: 'New user created' });
     }
   } catch (err) {
     next(err);
@@ -121,7 +92,5 @@ exports.getAllUsers = async (req, res, next) => {
 // @Route:      POST /api/v1/user/getUsers/:id
 // @Access:     Public
 exports.getSingleUser = (req, res, next) => {
-  return res
-    .status(200)
-    .json({ success: true, message: `Display User ${req.params.id}` });
+  return res.status(200).json({ success: true, message: `Display User ${req.params.id}` });
 };
